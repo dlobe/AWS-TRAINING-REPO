@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create a VPC and an EC2 instance
+
+Parameters:
+  VpcCIDRBlock:
+    Description: CIDR block for the VPC
+    Type: String
+    Default: 10.0.0.0/16
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDRBlock
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+
+  MySubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref MyVPC
+      CidrBlock: 10.0.0.0/24  # You can customize the subnet CIDR block
+      AvailabilityZone: us-east-1a  # Replace with your desired AZ
+      MapPublicIpOnLaunch: true
+
+  MyInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref MyVPC
+      InternetGatewayId: !Ref MyInternetGateway
+
+  MyEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: t2.micro
+      KeyName: aws4ntec  # Replace with your key pair name
+      ImageId: ami-04cb4ca688797756f  # Replace with your desired AMI ID
+      NetworkInterfaces:
+        -
+          AssociatePublicIpAddress: true
+          DeviceIndex: '0'
+          SubnetId: !Ref MySubnet
+
+Outputs:
+  VpcId:
+    Description: VPC ID
+    Value: !Ref MyVPC
+
+  SubnetId:
+    Description: Subnet ID
+    Value: !Ref MySubnet
+
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref MyEC2Instance
