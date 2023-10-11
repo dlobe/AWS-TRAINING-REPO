@@ -14,6 +14,9 @@ Resources:
       CidrBlock: !Ref VpcCIDRBlock
       EnableDnsSupport: true
       EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: cfnVPC_002
 
   MySubnet:
     Type: AWS::EC2::Subnet
@@ -38,6 +41,9 @@ Resources:
       InstanceType: t2.micro
       KeyName: aws4ntec  # Replace with your key pair name
       ImageId: ami-04cb4ca688797756f  # Replace with your desired AMI ID
+      Tags:
+        - Key: Name
+          Value: cfnec2_002
       NetworkInterfaces:
         -
           AssociatePublicIpAddress: true
