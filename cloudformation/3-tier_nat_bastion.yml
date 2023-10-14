@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Three-Tier Architecture with NAT Gateway and Bastion Host
+
+Parameters:
+  VpcCIDR:
+    Description: VPC CIDR Block
+    Type: String
+    Default: '10.0.0.0/16'
+    
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Name
+        Value: VPC_CFN
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  PublicSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+#      AvailabilityZone: !Select [0, !GetAZs !Ref 'AWS::Region']
+      AvailabilityZone: us-east-1a
+      CidrBlock: '10.0.0.0/24'
+      MapPublicIpOnLaunch: true
+
+#  PublicSubnet2:
+#    Type: 'AWS::EC2::Subnet'
+#    Properties:
+#      VpcId: !Ref VPC
+#      AvailabilityZone: !Select [1, !GetAZs !Ref 'AWS::Region']
+#      CidrBlock: '10.0.1.0/24'
+#      MapPublicIpOnLaunch: true
+
+  PrivateSubnet1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+#      AvailabilityZone: !Select [0, !GetAZs !Ref 'AWS::Region']
+      AvailabilityZone: us-east-1a
+      CidrBlock: '10.0.2.0/24'
+
+#  PrivateSubnet2:
+#    Type: 'AWS::EC2::Subnet'
+#    Properties:
+#      VpcId: !Ref VPC
+#      AvailabilityZone: !Select [1, !GetAZs !Ref 'AWS::Region']
+#      CidrBlock: '10.0.3.0/24'
+
+  RouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+
+#  PrivateRoute:
+#    Type: 'AWS::EC2::Route'
+#    Properties:
+#      RouteTableId: !Ref RouteTable
+#      DestinationCidrBlock: '0.0.0.0/0'
+#      NatGatewayId: !GetAtt NatGateway1.NatGatewayId
+
+  BastionSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable SSH access to Bastion Host
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - CidrIp: '0.0.0.0/0'
+          FromPort: 22
+          ToPort: 22
+          IpProtocol: tcp
+
+  BastionHost:
+    Type: 'AWS::EC2::Instance'
+    Properties:
+      InstanceType: t2.micro
+      KeyName: 'aws4ntec'
+      ImageId: 'ami-04cb4ca688797756f' # Choose an appropriate AMI ID
+      Tags:
+        - Key: Name
+          Value: bastion
+#      SecurityGroupIds:
+#           - !Ref BastionSecurityGroup
+      NetworkInterfaces:
+        - GroupSet:
+            - !Ref BastionSecurityGroup
+          AssociatePublicIpAddress: true
+          DeviceIndex: 0
+          DeleteOnTermination: true
+          SubnetId: !Ref PublicSubnet1
+#      SubnetId: !Ref PublicSubnet1
+      UserData: 
+        Fn::Base64:
+          !Sub
+
+  NatGateway1:
+    Type: 'AWS::EC2::NatGateway'
+    Properties:
+      AllocationId: 'eipalloc-0812ce340877d47ab' # Use your EIP allocation ID
+      SubnetId: !Ref PublicSubnet1
+
+#  NatGateway2:
+#    Type: 'AWS::EC2::NatGateway'
+#    Properties:
+#      AllocationId: 'eipalloc-0123456789abcdef1' # Use another EIP allocation ID
+#      SubnetId: !Ref PublicSubnet2
+
+Outputs:
+  BastionHostName:
+    Description: Bastion Host Public DNS
+    Value: !GetAtt BastionHost.PublicDnsName
+  VpcId:
+    Description: VPC ID
+    Value: !Ref VPC
+
+  PublicSubnetId:
+    Description: Subnet ID
+    Value: !Ref PublicSubnet1
+  NatGatewayId:
+    Description: Nat Gateway ID
+    Value: !Ref NatGateway1
+
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref BastionHost
