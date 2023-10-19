@@ -39,8 +39,8 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
-      KeyName: aws4ntec  # Replace with your key pair name
-      ImageId: ami-04cb4ca688797756f  # Replace with your desired AMI ID
+      KeyName: mykey  # Replace with your key pair name
+      ImageId: ami-041feb57c611358bd # Replace with yourami-041feb57c611358bd desired AMI ID
       Tags:
         - Key: Name
           Value: cfnec2_002
