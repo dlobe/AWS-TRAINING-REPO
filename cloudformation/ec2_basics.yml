@@ -35,7 +35,7 @@ Resources:
       VpcId: !Ref MyVPC
       InternetGatewayId: !Ref MyInternetGateway
 
-  MyEC2Instance:
+  myNaomiInstance:
     Type: AWS::EC2::Instance
     Properties:
       InstanceType: t2.micro
@@ -43,7 +43,7 @@ Resources:
       ImageId: !Sub '{{resolve:ssm:/Infra/Build/infra_ami}}'  # Replace with your desired AMI ID
       Tags:
         - Key: Name
-          Value: NewEC2
+          Value: naomiec2
       NetworkInterfaces:
         -
           AssociatePublicIpAddress: true
