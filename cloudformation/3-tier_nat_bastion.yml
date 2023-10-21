@@ -72,7 +72,7 @@ Resources:
       DestinationCidrBlock: '0.0.0.0/0'
       GatewayId: !Ref InternetGateway
 
-#  PrivateRoute:
+#  PrivateRout:
 #    Type: 'AWS::EC2::Route'
 #    Properties:
 #      RouteTableId: !Ref RouteTable
@@ -90,12 +90,31 @@ Resources:
           ToPort: 22
           IpProtocol: tcp
 
+  #EBS Vokume
+  BastionvOLUME:
+  Type: AWS::EC2::Volume
+  Properties:
+    Size: 100EB                                                                                                                                 
+    AvailabilityZone: us-east-1a
+    Tags:
+      - Key: MyTag
+        Value: TagValue
+  DeletionPolicy: Snapshot
+
+MountPoint:
+  Type: AWS::EC2::VolumeAttachment
+  Properties:
+    InstanceId: !Ref BastionHost
+    VolumeId: !Ref BastionvOLUME:
+Device: /dev/sdh
+  
+
   BastionHost:
     Type: 'AWS::EC2::Instance'
     Properties:
       InstanceType: t2.micro
-      KeyName: 'aws4ntec'
-      ImageId: 'ami-04cb4ca688797756f' # Choose an appropriate AMI ID
+      KeyName: mykey
+      ImageId: ami-041feb57c611358bd #  Choose an appropriaami-041feb57c611358bd te AMI ID
       Tags:
         - Key: Name
           Value: bastion
@@ -116,7 +135,7 @@ Resources:
   NatGateway1:
     Type: 'AWS::EC2::NatGateway'
     Properties:
-      AllocationId: 'eipalloc-0812ce340877d47ab' # Use your EIP allocation ID
+      AllocationId: 'eipalloc-03f673eb7878f0fbb' # Use your EIP allocation ID
       SubnetId: !Ref PublicSubnet1
 
 #  NatGateway2:
