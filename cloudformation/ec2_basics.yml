@@ -18,7 +18,7 @@ Resources:
         - Key: Name
           Value: NewVPC
 
-  MySubnet:
+  DevSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref MyVPC
